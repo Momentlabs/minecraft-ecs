@@ -7,6 +7,7 @@ region := us-east-1
 
 help:
 	@echo local \# builds the dockerfile localy to $(rep)
+	@echo test-local \# smoke test on the installed binary.
 	@echo deploy-to-repo \# builds and pushes the file the AWS repo.
 	@echo latest is: $(craft-config-latest)
 
@@ -21,17 +22,16 @@ local:
 	@echo building local image: $(repo) with $(craft-config-latest)
 	docker build --build-arg craft_config_url=$(craft-config-latest) -t $(repo) .
 
-test-local:
+test-local: local
 	docker run -it --rm --entrypoint craft-config $(repo) version
 
 # Man, this shit has to stop. Either move to rake or look for an alternative.
-deploy-to-repo: login := $(shell aws --profile $(profile) --output text ecr get-login  --region $(region))
+deploy-to-repo: login := $(shell aws --profile $(profile) --region $(region) --output text ecr get-login )
 deploy-to-repo: token := $(shell echo $(login) | awk '{print $$6}')
 
 # @echo Bulding and pushing repository repository:$(repo)
-deploy-to-repo:
+deploy-to-repo: test-local
 	@echo logging into AWS before push.
 	@docker login -u AWS -p $(token) $(aws_repo)
-	docker build --build-arg craft_config_url=$(craft-config-latest) -t $(repo) .
 	docker tag $(repo):latest $(aws_repo)/$(repo):latest
 	docker push $(aws_repo)/$(repo):latest

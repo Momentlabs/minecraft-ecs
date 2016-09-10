@@ -2,11 +2,12 @@ version: '2'
 services:
   minecraft:
     image: minecraft-ecs
-    container_name: minecraft
+    container_name: minecraft-1
     ports: 
-      - 25565:25565
-      - 25575:25575
+      - 25566:25565
+    #   - 25575:25575
     environment:
+      - TYPE=spigot
       - EULA=true
       - ENABLE_RCON=true
       - RCON_PASSWORD=testing
@@ -16,6 +17,7 @@ services:
       - MODE=creative
       - FORCE_GAMEMODE=true
       - MOTD="Vanilla test server in a docker container."
+      - ONLINE_MODE=false
 
     volumes:
       - /data
@@ -27,7 +29,7 @@ services:
 
   backup:
     image: minecraft-ecs
-    container_name: minecraft-backup
+    container_name: minecraft-backup-1
     depends_on: 
       - minecraft
     volumes_from:
